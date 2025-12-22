@@ -63,5 +63,6 @@ pre{background:#f3f3f3;padding:12px;border-radius:6px}
 	box-shadow:none;
 }
 .google-btn:hover{background:#f7f7f7}
-.google-icon{display:inline-flex;align-items:center;justify-content:center}
+.google-icon{display:inline-block;width:18px;height:18px}
+.google-icon[src]{width:18px;height:18px}
 .google-label{flex:1;text-align:center;font-weight:500}
