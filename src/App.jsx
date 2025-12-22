@@ -5,6 +5,7 @@ import Dashboard from "./pages/Dashboard";
 import Orders from "./pages/Orders";
 import Items from "./pages/Items";
 import Categories from "./pages/Categories";
+import OAuthCallback from "./pages/OAuthCallback";
 
 function Nav() {
   return (
@@ -31,6 +32,7 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/auth/callback" element={<OAuthCallback />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/orders" element={<Orders />} />
           <Route path="/items" element={<Items />} />
