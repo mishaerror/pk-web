@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { clearAuthToken } from '../utils/api';
 
 const AuthContext = createContext(null);
 
@@ -7,7 +8,7 @@ export function AuthProvider({ children }) {
     isAuthenticated: localStorage.getItem('pk_authenticated') === 'true',
     merchantName: localStorage.getItem('pk_merchantName') || '',
     merchantEmail: localStorage.getItem('pk_merchantEmail') || '',
-    merchantId: localStorage.getItem('pk_merchantId') || '',
+    merchantRef: localStorage.getItem('pk_merchantRef') || '',
   });
 
   // Function to update auth state
@@ -17,18 +18,21 @@ export function AuthProvider({ children }) {
         isAuthenticated: true,
         merchantName: merchant.name || '',
         merchantEmail: merchant.email || '',
-        merchantId: merchant.id || '',
+        merchantRef: merchant.ref || '',
       };
       
       // Update localStorage
       localStorage.setItem('pk_authenticated', 'true');
       localStorage.setItem('pk_merchantName', merchant.name || '');
       localStorage.setItem('pk_merchantEmail', merchant.email || '');
-      if (merchant.id) localStorage.setItem('pk_merchantId', merchant.id);
+      if (merchant.ref) localStorage.setItem('pk_merchantRef', merchant.ref);
       
       // Update state
       setAuthState(newState);
     }
+  };
+  const getAuth = () => {
+    return authState;
   };
 
   // Function to clear auth state
@@ -37,21 +41,24 @@ export function AuthProvider({ children }) {
       isAuthenticated: false,
       merchantName: '',
       merchantEmail: '',
-      merchantId: '',
+      merchantRef: '',
     };
     
     // Clear localStorage
     localStorage.removeItem('pk_authenticated');
     localStorage.removeItem('pk_merchantName');
     localStorage.removeItem('pk_merchantEmail');
-    localStorage.removeItem('pk_merchantId');
+    localStorage.removeItem('pk_merchantRef');
+    
+    // Clear JWT token
+    clearAuthToken();
     
     // Update state
     setAuthState(newState);
   };
 
   return (
-    <AuthContext.Provider value={{ ...authState, setAuth, clearAuth }}>
+    <AuthContext.Provider value={{ ...authState, setAuth, clearAuth, getAuth }}>
       {children}
     </AuthContext.Provider>
   );
@@ -64,4 +71,3 @@ export function useAuth() {
   }
   return context;
 }
-

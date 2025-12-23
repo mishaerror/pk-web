@@ -1,9 +1,34 @@
 /**
  * API utility for making authenticated requests to Spring Boot backend
- * Automatically includes credentials (JSESSIONID cookie) with all requests
+ * Uses JWT Bearer token authentication
  */
 
 const API_BASE = import.meta.env.VITE_API_BASE || 'https://localhost:8443';
+
+/**
+ * Get JWT token from localStorage
+ */
+function getAuthToken() {
+  return localStorage.getItem('pk_auth_token');
+}
+
+/**
+ * Set JWT token in localStorage
+ */
+export function setAuthToken(token) {
+  if (token) {
+    localStorage.setItem('pk_auth_token', token);
+  } else {
+    localStorage.removeItem('pk_auth_token');
+  }
+}
+
+/**
+ * Clear JWT token from localStorage
+ */
+export function clearAuthToken() {
+  localStorage.removeItem('pk_auth_token');
+}
 
 /**
  * Make an authenticated API request
@@ -13,52 +38,46 @@ const API_BASE = import.meta.env.VITE_API_BASE || 'https://localhost:8443';
  */
 export async function apiRequest(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
+  const token = getAuthToken();
   
   const config = {
     ...options,
-    credentials: 'include', // Always include cookies (JSESSIONID)
     headers: {
       'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
       ...options.headers,
     },
   };
 
   const response = await fetch(url, config);
-  
-  // If unauthorized, redirect to login
+
+  // Auto-redirect to login on 401 Unauthorized
   if (response.status === 401) {
-    localStorage.removeItem('pk_authenticated');
-    localStorage.removeItem('pk_merchantName');
-    localStorage.removeItem('pk_merchantEmail');
-    localStorage.removeItem('pk_merchantId');
+    console.warn('Unauthorized request, clearing token and redirecting to login');
+    clearAuthToken();
     window.location.href = '/login';
-    throw new Error('Unauthorized - redirecting to login');
+    throw new Error('Unauthorized');
   }
 
   return response;
 }
 
 /**
- * Make a GET request
- * @param {string} endpoint - API endpoint
- * @returns {Promise<any>} - Parsed JSON response
+ * GET request
  */
 export async function apiGet(endpoint) {
   const response = await apiRequest(endpoint, { method: 'GET' });
   
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || response.statusText);
+    const error = await response.text();
+    throw new Error(`GET ${endpoint} failed: ${response.status} - ${error}`);
   }
   
   return response.json();
 }
 
 /**
- * Make a POST request
- * @param {string} endpoint - API endpoint
- * @param {object} data - Request body
- * @returns {Promise<any>} - Parsed JSON response
+ * POST request
  */
 export async function apiPost(endpoint, data) {
   const response = await apiRequest(endpoint, {
@@ -67,18 +86,15 @@ export async function apiPost(endpoint, data) {
   });
   
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || response.statusText);
+    const error = await response.text();
+    throw new Error(`POST ${endpoint} failed: ${response.status} - ${error}`);
   }
   
   return response.json();
 }
 
 /**
- * Make a PUT request
- * @param {string} endpoint - API endpoint
- * @param {object} data - Request body
- * @returns {Promise<any>} - Parsed JSON response
+ * PUT request
  */
 export async function apiPut(endpoint, data) {
   const response = await apiRequest(endpoint, {
@@ -87,47 +103,45 @@ export async function apiPut(endpoint, data) {
   });
   
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || response.statusText);
+    const error = await response.text();
+    throw new Error(`PUT ${endpoint} failed: ${response.status} - ${error}`);
   }
   
   return response.json();
 }
 
 /**
- * Make a DELETE request
- * @param {string} endpoint - API endpoint
- * @returns {Promise<any>} - Parsed JSON response
+ * DELETE request
  */
 export async function apiDelete(endpoint) {
   const response = await apiRequest(endpoint, { method: 'DELETE' });
   
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || response.statusText);
+    const error = await response.text();
+    throw new Error(`DELETE ${endpoint} failed: ${response.status} - ${error}`);
   }
   
-  // DELETE might return empty response
-  const text = await response.text();
-  return text ? JSON.parse(text) : null;
+  return response.json();
 }
 
 /**
- * Check if user is authenticated by verifying session with backend
- * @returns {Promise<boolean>}
+ * Check if user is authenticated
  */
 export async function checkAuth() {
   try {
+    const token = getAuthToken();
+    if (!token) return false;
+    
     const response = await apiRequest('/api/auth/me', { method: 'GET' });
     return response.ok;
   } catch (error) {
+    console.error('Auth check failed:', error);
     return false;
   }
 }
 
 /**
- * Get current user/merchant info
- * @returns {Promise<object>}
+ * Get current user info
  */
 export async function getCurrentUser() {
   return apiGet('/api/auth/me');
@@ -135,17 +149,17 @@ export async function getCurrentUser() {
 
 /**
  * Logout user
- * Note: This only calls the backend. Use AuthContext.clearAuth() to clear local state.
- * @returns {Promise<void>}
  */
 export async function logout() {
-  try {
-    await apiPost('/logout', {});
-  } catch (error) {
-    console.error('Logout error:', error);
-  }
-  // Note: Don't clear localStorage or redirect here
-  // Let the component using AuthContext handle that
+  clearAuthToken();
+  return apiPost('/api/auth/logout', {});
+}
+
+/**
+ * Check if JWT token exists
+ */
+export function hasAuthToken() {
+  return getAuthToken() !== null;
 }
 
 export { API_BASE };

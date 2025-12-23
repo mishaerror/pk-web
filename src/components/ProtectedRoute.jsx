@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { checkAuth } from '../utils/api';
 
 export default function ProtectedRoute({ children }) {
-  const { isAuthenticated: authContextAuthenticated, clearAuth } = useAuth();
+  const { isAuthenticated: authContextAuthenticated, merchantRef, clearAuth } = useAuth();
   const [isChecking, setIsChecking] = useState(true);
   const [isValid, setIsValid] = useState(false);
 
@@ -14,6 +14,15 @@ export default function ProtectedRoute({ children }) {
       if (!authContextAuthenticated) {
         setIsChecking(false);
         setIsValid(false);
+        return;
+      }
+
+      // Check if user is authenticated but not registered (no merchantRef)
+      if (authContextAuthenticated && (!merchantRef || merchantRef === '')) {
+        console.log('User authenticated but not registered, redirecting to registration');
+        setIsChecking(false);
+        setIsValid(false);
+        // Don't clear auth - they're authenticated, just not registered
         return;
       }
 
@@ -30,7 +39,7 @@ export default function ProtectedRoute({ children }) {
     }
 
     verifyAuth();
-  }, [authContextAuthenticated, clearAuth]);
+  }, [authContextAuthenticated, merchantRef, clearAuth]);
 
   // Show loading state while checking
   if (isChecking) {
@@ -39,6 +48,11 @@ export default function ProtectedRoute({ children }) {
         <p>Loading...</p>
       </div>
     );
+  }
+
+  // If authenticated but not registered, redirect to registration
+  if (authContextAuthenticated && (!merchantRef || merchantRef === '')) {
+    return <Navigate to="/register" replace />;
   }
 
   // Redirect to login if not authenticated
