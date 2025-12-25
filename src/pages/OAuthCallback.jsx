@@ -36,7 +36,8 @@ export default function OAuthCallback() {
         // Extract JWT token from Auth query parameter
         const authToken = urlParams.get('Auth');
         console.log('Auth token from query param:', authToken ? authToken.substring(0, 20) + '...' : 'null');
-        
+        var cookieToken = getCookie('Auth');
+        console.log('Auth token from cookie:', cookieToken ? cookieToken.substring(0, 20) + '...' : 'null');
         if (!authToken) {
           throw new Error('No authentication token found in query parameters');
         }
@@ -47,12 +48,12 @@ export default function OAuthCallback() {
 
         setMessage('Verifying authentication with backend...');
 
-        // Now verify the token with the backend
+        //Now verify the token with the backend
         const response = await fetch(`${import.meta.env.VITE_API_BASE || 'https://localhost:8443'}/api/auth/me`, {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
-            'Authorization': `Bearer ${authToken}`,
+            'X-AUTH-TOKEN': `${authToken}`
           },
         });
 

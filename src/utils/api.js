@@ -44,7 +44,7 @@ export async function apiRequest(endpoint, options = {}) {
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      ...(token && { 'Authorization': `Bearer ${token}` }),
+      ...(token && { 'X-AUTH-TOKEN': `${token}` }),
       ...options.headers,
     },
   };

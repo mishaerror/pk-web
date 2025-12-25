@@ -41,7 +41,7 @@ export default function Register() {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('pk_auth_token')}`,
+            'X-AUTH-TOKEN': `${localStorage.getItem('pk_auth_token')}`,
           },
         });
 
@@ -90,7 +90,7 @@ export default function Register() {
     }
 
     checkAuthAndLoadData();
-  }, [navigate, setAuth]);
+  }, [navigate]); // Removed setAuth from dependencies
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
