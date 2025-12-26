@@ -1,5 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { clearAuthToken } from '../utils/api';
+import React, { createContext, useContext, useState } from 'react';
 
 const AuthContext = createContext(null);
 
@@ -49,9 +48,6 @@ export function AuthProvider({ children }) {
     localStorage.removeItem('pk_merchantName');
     localStorage.removeItem('pk_merchantEmail');
     localStorage.removeItem('pk_merchantRef');
-    
-    // Clear JWT token
-    clearAuthToken();
     
     // Update state
     setAuthState(newState);

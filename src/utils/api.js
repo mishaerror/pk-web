@@ -6,12 +6,6 @@
 // Use relative URLs since Vite proxy will handle routing to backend
 const API_BASE = '';
 
-/**
- * Get JWT token from localStorage
- */
-function getAuthToken() {
-  return localStorage.getItem('pk_auth_token');
-}
 
 /**
  * Set JWT token in localStorage
@@ -25,13 +19,6 @@ export function setAuthToken(token) {
 }
 
 /**
- * Clear JWT token from localStorage
- */
-export function clearAuthToken() {
-  localStorage.removeItem('pk_auth_token');
-}
-
-/**
  * Make an authenticated API request
  * @param {string} endpoint - API endpoint (e.g., '/api/orders')
  * @param {object} options - Fetch options
@@ -39,13 +26,13 @@ export function clearAuthToken() {
  */
 export async function apiRequest(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
-  const token = getAuthToken();
   
   const config = {
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      ...(token && { 'X-AUTH-TOKEN': `${token}` }),
+      credentials: 'include',
+     // ...(token && { 'X-AUTH-TOKEN': `${token}` }),
       ...options.headers,
     },
   };
@@ -128,10 +115,7 @@ export async function apiDelete(endpoint) {
  * Check if user is authenticated
  */
 export async function checkAuth() {
-  try {
-    const token = getAuthToken();
-    if (!token) return false;
-    
+  try {    
     const response = await apiRequest('/api/auth/me', { method: 'GET' });
     return response.ok;
   } catch (error) {
@@ -151,15 +135,7 @@ export async function getCurrentUser() {
  * Logout user
  */
 export async function logout() {
-  clearAuthToken();
   return apiPost('/api/auth/logout', {});
-}
-
-/**
- * Check if JWT token exists
- */
-export function hasAuthToken() {
-  return getAuthToken() !== null;
 }
 
 export { API_BASE };

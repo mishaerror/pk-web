@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { apiPost, hasAuthToken } from '../utils/api';
+import { apiPost } from '../utils/api';
 
 export default function Register() {
   const navigate = useNavigate();
@@ -24,17 +24,12 @@ export default function Register() {
   useEffect(() => {
     async function checkAuthAndLoadData() {
       try {
-        if (!hasAuthToken()) {
-          setError('No authentication token found. Please log in again.');
-          setTimeout(() => navigate('/login'), 2000);
-          return;
-        }
 
         const authResponse = await fetch('/api/auth/me', {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
-            'X-AUTH-TOKEN': `${localStorage.getItem('pk_auth_token')}`,
+            credentials: 'include'
           },
         });
 

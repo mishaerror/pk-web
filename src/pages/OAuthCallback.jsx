@@ -26,15 +26,14 @@ export default function OAuthCallback() {
         const isRegistrationFlow = urlParams.get('flow') === 'REGISTER' || 
                                    window.location.pathname.includes('&flow=REGISTER');
 
-        // Extract JWT token from Auth query parameter
-        const authToken = urlParams.get('Auth');
-        var cookieToken = getCookie('Auth');
-        if (!authToken) {
-          throw new Error('No authentication token found in query parameters');
-        }
+        // // Extract JWT token from Auth query parameter
+        // const authToken = urlParams.get('Auth');
+        // const cookieToken = getCookie('Auth');
+        // console.log('Cookie token:', cookieToken);
+        // if (!authToken) {
+        //   throw new Error('No authentication token found in query parameters');
+        // }
 
-        // Store the JWT token
-        setAuthToken(authToken);
 
         setMessage('Verifying authentication with backend...');
 
