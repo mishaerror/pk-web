@@ -24,20 +24,13 @@ export default function Register() {
   useEffect(() => {
     async function checkAuthAndLoadData() {
       try {
-        // Check if we have a JWT token
-        console.log('Checking for JWT token...');
-        console.log('Has auth token:', hasAuthToken());
-
         if (!hasAuthToken()) {
-          console.error('No JWT token found, redirecting to login');
           setError('No authentication token found. Please log in again.');
           setTimeout(() => navigate('/login'), 2000);
           return;
         }
 
-        // Verify we have a valid session with the backend
-        console.log('Checking backend authentication...');
-        const authResponse = await fetch(`${import.meta.env.VITE_API_BASE || 'https://localhost:8443'}/api/auth/me`, {
+        const authResponse = await fetch('/api/auth/me', {
           method: 'GET',
           headers: {
             'Accept': 'application/json',
@@ -45,18 +38,13 @@ export default function Register() {
           },
         });
 
-        console.log('Auth check response status:', authResponse.status);
-        console.log('Auth check response headers:', [...authResponse.headers.entries()]);
-
         if (!authResponse.ok) {
-          console.error('Not authenticated with backend, redirecting to login');
           setError('Session expired. Please log in again.');
           setTimeout(() => navigate('/login'), 2000);
           return;
         }
 
         const backendUserData = await authResponse.json();
-        console.log('Backend user data:', backendUserData);
 
         // Update auth context with fresh backend data
         setAuth({
@@ -90,7 +78,7 @@ export default function Register() {
     }
 
     checkAuthAndLoadData();
-  }, [navigate]); // Removed setAuth from dependencies
+  }, [navigate]); // Removed setAuth from dependencies - this was causing the infinite loop!
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

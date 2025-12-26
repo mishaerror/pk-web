@@ -1,9 +1,9 @@
 import React from 'react';
 
 export default function Login() {
-  const handleGoogleSignIn = () => {
-    // Redirect to backend OAuth handler
-    window.location.href = 'https://localhost:8443/oauth2/authorization/google';
+  const handleGoogleLogin = () => {
+    // Redirect to Spring Boot OAuth2 endpoint via proxy
+    window.location.href = '/oauth2/authorization/google';
   };
 
   return (
@@ -13,7 +13,7 @@ export default function Login() {
 
         <div className="login-center">
           {/** Use imported SVG asset for the Google icon to keep markup small */}
-          <button type="button" className="google-btn" onClick={handleGoogleSignIn} aria-label="Sign in with Google">
+          <button type="button" className="google-btn" onClick={handleGoogleLogin} aria-label="Sign in with Google">
             <img src={new URL('../assets/google-g.svg', import.meta.url).href} alt="Google" className="google-icon" />
             <span className="google-label">Sign in with Google</span>
           </button>

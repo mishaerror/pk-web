@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { setAuthToken } from '../utils/api';
+import { setAuthToken, apiGet } from '../utils/api';
 
 // Helper function to get cookie value by name
 function getCookie(name) {
@@ -26,49 +26,20 @@ export default function OAuthCallback() {
         const isRegistrationFlow = urlParams.get('flow') === 'REGISTER' || 
                                    window.location.pathname.includes('&flow=REGISTER');
 
-        // Debug: Log URL parsing and cookies
-        console.log('Current URL:', window.location.href);
-        console.log('Pathname:', window.location.pathname);
-        console.log('Search:', window.location.search);
-        console.log('Registration flow detected:', isRegistrationFlow);
-        console.log('All cookies:', document.cookie);
-
         // Extract JWT token from Auth query parameter
         const authToken = urlParams.get('Auth');
-        console.log('Auth token from query param:', authToken ? authToken.substring(0, 20) + '...' : 'null');
         var cookieToken = getCookie('Auth');
-        console.log('Auth token from cookie:', cookieToken ? cookieToken.substring(0, 20) + '...' : 'null');
         if (!authToken) {
           throw new Error('No authentication token found in query parameters');
         }
 
         // Store the JWT token
         setAuthToken(authToken);
-        console.log('JWT token stored from query param:', authToken.substring(0, 20) + '...');
 
         setMessage('Verifying authentication with backend...');
 
-        //Now verify the token with the backend
-        const response = await fetch(`${import.meta.env.VITE_API_BASE || 'https://localhost:8443'}/api/auth/me`, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'X-AUTH-TOKEN': `${authToken}`
-          },
-        });
-
-        console.log('Response status:', response.status);
-        console.log('Response headers:', [...response.headers.entries()]);
-
-        if (!response.ok) {
-          const contentType = response.headers.get('content-type');
-          const text = await response.text();
-          console.error('Response not OK:', response.status, contentType, text.substring(0, 200));
-          throw new Error(`Authentication failed: ${response.status} - ${contentType?.includes('html') ? 'Received HTML instead of JSON (likely redirected to login)' : text}`);
-        }
-
-        const data = await response.json();
-        console.log('User data received:', data);
+        // Now verify the token with the backend
+        const data = await apiGet('/api/auth/me');
 
         // Update auth context with user data
         if (data) {
@@ -84,13 +55,6 @@ export default function OAuthCallback() {
         // Determine redirect destination based on registration status
         const isRegistered = data.registered === 'true' || data.registered === true;
         const hasRef = data.ref && data.ref !== '';
-        
-        console.log('Registration status:', { 
-          registered: data.registered, 
-          isRegistered, 
-          ref: data.ref, 
-          hasRef 
-        });
         
         if (!isRegistered || !hasRef) {
           setMessage('Authentication successful — redirecting to registration...');

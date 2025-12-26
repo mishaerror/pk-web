@@ -13,6 +13,7 @@
   "license": "ISC",
   "type": "commonjs",
   "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.2",
     "vite": "^7.3.0"
   },
   "dependencies": {

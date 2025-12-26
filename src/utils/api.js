@@ -1,9 +1,10 @@
 /**
  * API utility for making authenticated requests to Spring Boot backend
- * Uses JWT Bearer token authentication
+ * Uses JWT token authentication with Vite proxy
  */
 
-const API_BASE = import.meta.env.VITE_API_BASE || 'https://localhost:8443';
+// Use relative URLs since Vite proxy will handle routing to backend
+const API_BASE = '';
 
 /**
  * Get JWT token from localStorage
@@ -53,7 +54,6 @@ export async function apiRequest(endpoint, options = {}) {
 
   // Auto-redirect to login on 401 Unauthorized
   if (response.status === 401) {
-    console.warn('Unauthorized request, clearing token and redirecting to login');
     clearAuthToken();
     window.location.href = '/login';
     throw new Error('Unauthorized');
