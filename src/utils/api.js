@@ -6,6 +6,7 @@
 // Use relative URLs since Vite proxy will handle routing to backend
 const API_BASE = '';
 
+import { useAuth } from '../contexts/AuthContext';
 
 /**
  * Set JWT token in localStorage
@@ -27,12 +28,15 @@ export function setAuthToken(token) {
 export async function apiRequest(endpoint, options = {}) {
   const url = `${API_BASE}${endpoint}`;
   
+  // Get merchantRef from localStorage
+  const merchantRef = localStorage.getItem('pk_merchantRef');
+  
   const config = {
     ...options,
     headers: {
       'Content-Type': 'application/json',
       credentials: 'include',
-     // ...(token && { 'X-AUTH-TOKEN': `${token}` }),
+      ...(merchantRef && { 'X-Merchant-Ref': merchantRef }),
       ...options.headers,
     },
   };
@@ -77,7 +81,13 @@ export async function apiPost(endpoint, data) {
     throw new Error(`POST ${endpoint} failed: ${response.status} - ${error}`);
   }
   
-  return response.json();
+  // Handle empty response body
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    return response.json();
+  } else {
+    return {};
+  }
 }
 
 /**
@@ -94,7 +104,14 @@ export async function apiPut(endpoint, data) {
     throw new Error(`PUT ${endpoint} failed: ${response.status} - ${error}`);
   }
   
-  return response.json();
+  // Handle empty response body
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    return response.json();
+  } else {
+    // Return empty object for empty responses
+    return {};
+  }
 }
 
 /**
@@ -108,7 +125,13 @@ export async function apiDelete(endpoint) {
     throw new Error(`DELETE ${endpoint} failed: ${response.status} - ${error}`);
   }
   
-  return response.json();
+  // Handle empty response body
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    return response.json();
+  } else {
+    return {};
+  }
 }
 
 /**

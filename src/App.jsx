@@ -18,11 +18,11 @@ function Nav() {
     try {
       await logout();
       clearAuth(); // Clear auth state
-      window.location.href = '/login';
+      window.location.href = '/';
     } catch (err) {
       console.error('Logout failed:', err);
       clearAuth(); // Clear auth state even if backend call fails
-      window.location.href = '/login';
+      window.location.href = '/';
     }
   };
 

@@ -25,6 +25,7 @@ export function AuthProvider({ children }) {
       localStorage.setItem('pk_merchantName', merchant.name || '');
       localStorage.setItem('pk_merchantEmail', merchant.email || '');
       if (merchant.ref) localStorage.setItem('pk_merchantRef', merchant.ref);
+      console.log('Setting merchantRef in localStorage:', merchant.ref);
       
       // Update state
       setAuthState(newState);
