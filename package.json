@@ -17,6 +17,10 @@
     "vite": "^7.3.0"
   },
   "dependencies": {
+    "@mui/material": "^5.16.4",
+    "@emotion/react": "^11.11.1",
+    "@emotion/styled": "^11.11.0",
+    "@mui/icons-material": "^5.16.4",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-router-dom": "^6.30.2"

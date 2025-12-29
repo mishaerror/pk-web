@@ -1,4 +1,22 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Container,
+  Typography,
+  Button,
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Card,
+  CardContent,
+  CardActions,
+  Grid,
+  Box,
+  CircularProgress,
+  Alert
+} from '@mui/material';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api';
 
 export default function Categories() {
@@ -136,109 +154,116 @@ export default function Categories() {
   }, []);
 
   return (
-    <main className="page-root">
-      <div className="container">
-        <div className="page-header">
-          <h2>Categories</h2>
-          <button 
-            className="btn" 
-            onClick={() => setShowAddForm(true)}
-          >
-            Add Category
-          </button>
-        </div>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h4" component="h1">
+          Categories
+        </Typography>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => setShowAddForm(true)}
+        >
+          Add Category
+        </Button>
+      </Box>
 
-        {/* Search Form */}
-        <form onSubmit={handleSearch} className="search-form">
-          <input
-            type="text"
+      {/* Search Form */}
+      <Box component="form" onSubmit={handleSearch} mb={3}>
+        <Box display="flex" gap={2}>
+          <TextField
+            fullWidth
             placeholder="Search categories..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            variant="outlined"
+            size="small"
           />
-          <button type="submit" className="btn">Search</button>
+          <Button type="submit" variant="outlined">
+            Search
+          </Button>
           {searchTerm && (
-            <button 
-              type="button" 
-              className="btn" 
+            <Button
+              variant="outlined"
               onClick={() => {
                 setSearchTerm('');
                 fetchCategories();
               }}
             >
               Clear
-            </button>
+            </Button>
           )}
-        </form>
+        </Box>
+      </Box>
 
-        {/* Add/Edit Form Modal */}
-        {showAddForm && (
-          <div className="modal-overlay">
-            <div className="modal">
-              <div className="modal-header">
-                <h3>{editingCategory ? 'Edit Category' : 'Add Category'}</h3>
-                <button className="close-btn" onClick={handleCancel}>×</button>
-              </div>
-              <form onSubmit={handleSubmit} className="modal-form">
-                <div className="form-group">
-                  <label htmlFor="name">Category Name</label>
-                  <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className={formErrors.name ? 'error' : ''}
-                    placeholder="Enter category name"
-                  />
-                  <input
-                    type="hidden"
-                    id="ref"
-                    name="ref"
-                    value={formData.ref}
-                    onChange={handleInputChange}
-                  />
-                  {formErrors.name && <span className="error-text">{formErrors.name}</span>}
-                </div>
-                <div className="form-actions">
-                  <button type="button" className="btn secondary" onClick={handleCancel}>
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn primary">
-                    {editingCategory ? 'Update' : 'Add'} Category
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+      {/* Add/Edit Form Dialog */}
+      <Dialog open={showAddForm} onClose={handleCancel} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          {editingCategory ? 'Edit Category' : 'Add Category'}
+        </DialogTitle>
+        <Box component="form" onSubmit={handleSubmit}>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              name="name"
+              label="Category Name"
+              type="text"
+              fullWidth
+              variant="outlined"
+              value={formData.name}
+              onChange={handleInputChange}
+              error={!!formErrors.name}
+              helperText={formErrors.name}
+              placeholder="Enter category name"
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCancel}>Cancel</Button>
+            <Button type="submit" variant="contained">
+              {editingCategory ? 'Update' : 'Add'}
+            </Button>
+          </DialogActions>
+        </Box>
+      </Dialog>
 
-        {loading ? (
-          <div>Loading...</div>
-        ) : (
-          <div className="grid-list categories">
-            {categories.map(category => (
-              <div className="card category-item" key={category.ref}>
-                <div className="category-title">{category.name}</div>
-                <div className="category-actions">
-                  <button 
-                    className="btn"
+      {/* Categories List */}
+      {loading ? (
+        <Box display="flex" justifyContent="center" mt={4}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <Grid container spacing={2}>
+          {categories.map(category => (
+            <Grid item xs={12} sm={6} md={4} key={category.ref}>
+              <Card>
+                <CardContent>
+                  <Typography variant="h6" component="h2">
+                    {category.name}
+                  </Typography>
+                </CardContent>
+                <CardActions>
+                  <Button
+                    size="small"
+                    startIcon={<EditIcon />}
                     onClick={() => handleEdit(category)}
                   >
                     Edit
-                  </button>
-                  <button 
-                    className="btn danger"
+                  </Button>
+                  <Button
+                    size="small"
+                    color="error"
+                    startIcon={<DeleteIcon />}
                     onClick={() => deleteCategory(category.ref)}
                   >
                     Delete
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </main>
+                  </Button>
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
+    </Container>
   );
 }
