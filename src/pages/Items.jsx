@@ -1,4 +1,18 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Container,
+  Typography,
+  Button,
+  TextField,
+  Card,
+  CardContent,
+  CardActions,
+  Grid,
+  Box,
+  CircularProgress,
+  Avatar
+} from '@mui/material';
+import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Search as SearchIcon, Clear as ClearIcon } from '@mui/icons-material';
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api';
 
 export default function Items() {
@@ -69,75 +83,104 @@ export default function Items() {
   }, []);
 
   return (
-    <main className="page-root">
-      <div className="container">
-        <div className="page-header">
-          <h2>Items</h2>
-          <button 
-            className="btn" 
-            onClick={() => setShowAddForm(true)}
-          >
-            Add Item
-          </button>
-        </div>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+        <Typography variant="h4" component="h1">
+          Items
+        </Typography>
+        <Button
+          variant="contained"
+          startIcon={<AddIcon />}
+          onClick={() => setShowAddForm(true)}
+        >
+          Add Item
+        </Button>
+      </Box>
 
-        {/* Search Form */}
-        <form onSubmit={handleSearch} className="search-form">
-          <input
-            type="text"
+      {/* Search Form */}
+      <Box component="form" onSubmit={handleSearch} mb={3}>
+        <Box display="flex" gap={2}>
+          <TextField
+            fullWidth
             placeholder="Search items..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            variant="outlined"
+            size="small"
           />
-          <button type="submit" className="btn">Search</button>
+          <Button 
+            type="submit" 
+            variant="outlined"
+            startIcon={<SearchIcon />}
+          >
+            Search
+          </Button>
           {searchTerm && (
-            <button 
-              type="button" 
-              className="btn" 
+            <Button
+              variant="outlined"
+              startIcon={<ClearIcon />}
               onClick={() => {
                 setSearchTerm('');
                 fetchItems();
               }}
             >
               Clear
-            </button>
+            </Button>
           )}
-        </form>
+        </Box>
+      </Box>
 
-        {loading ? (
-          <div>Loading...</div>
-        ) : (
-          <div className="grid-list">
-            {items.map(item => (
-              <div className="card list-item" key={item.itemRef}>
-                <div className="item-left">
-                  <div className="thumb" />
-                </div>
-                <div className="item-body">
-                  <div className="item-title">{item.name}</div>
-                  <div className="item-meta">{item.category} · {item.price}</div>
-                </div>
-                <div className="item-actions">
-                  <button 
-                    className="btn"
+      {loading ? (
+        <Box display="flex" justifyContent="center" mt={4}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <Grid container spacing={3}>
+          {items.map(item => (
+            <Grid item xs={12} sm={6} md={4} key={item.itemRef}>
+              <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <Avatar 
+                      sx={{ 
+                        width: 64, 
+                        height: 64, 
+                        mr: 2,
+                        bgcolor: 'grey.300'
+                      }}
+                    />
+                    <Box>
+                      <Typography variant="h6" component="h2" gutterBottom>
+                        {item.name}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        {item.category} • {item.price}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
+                <CardActions>
+                  <Button
+                    size="small"
+                    startIcon={<EditIcon />}
                     onClick={() => setEditingItem(item)}
                   >
                     Edit
-                  </button>
-                  <button 
-                    className="btn danger"
+                  </Button>
+                  <Button
+                    size="small"
+                    color="error"
+                    startIcon={<DeleteIcon />}
                     onClick={() => deleteItem(item.itemRef)}
                   >
                     Delete
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Add/Edit Form Modal would go here */}
-      </div>
-    </main>
+                  </Button>
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      )}
+    </Container>
   );
 }

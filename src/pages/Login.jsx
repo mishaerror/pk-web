@@ -1,4 +1,12 @@
 import React from 'react';
+import {
+  Container,
+  Paper,
+  Typography,
+  Button,
+  Box
+} from '@mui/material';
+import { Google as GoogleIcon } from '@mui/icons-material';
 
 export default function Login() {
   const handleGoogleLogin = () => {
@@ -7,19 +15,55 @@ export default function Login() {
   };
 
   return (
-    <main className="page-root">
-      <div className="container card">
-        <h2>Sign in</h2>
+    <Container component="main" maxWidth="sm">
+      <Box
+        sx={{
+          marginTop: 8,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+        }}
+      >
+        <Paper
+          elevation={3}
+          sx={{
+            padding: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            width: '100%',
+          }}
+        >
+          <Typography component="h1" variant="h4" gutterBottom>
+            Sign in
+          </Typography>
 
-        <div className="login-center">
-          {/** Use imported SVG asset for the Google icon to keep markup small */}
-          <button type="button" className="google-btn" onClick={handleGoogleLogin} aria-label="Sign in with Google">
-            <img src={new URL('../assets/google-g.svg', import.meta.url).href} alt="Google" className="google-icon" />
-            <span className="google-label">Sign in with Google</span>
-          </button>
-        </div>
-
-      </div>
-    </main>
+          <Box sx={{ mt: 3, width: '100%', display: 'flex', justifyContent: 'center' }}>
+            <Button
+              variant="outlined"
+              startIcon={<GoogleIcon />}
+              onClick={handleGoogleLogin}
+              sx={{
+                minWidth: 240,
+                py: 1.5,
+                px: 3,
+                borderColor: '#dadce0',
+                color: '#3c4043',
+                backgroundColor: '#fff',
+                '&:hover': {
+                  backgroundColor: '#f8f9fa',
+                  borderColor: '#dadce0',
+                },
+                textTransform: 'none',
+                fontSize: '14px',
+                fontWeight: 500,
+              }}
+            >
+              Sign in with Google
+            </Button>
+          </Box>
+        </Paper>
+      </Box>
+    </Container>
   );
 }
