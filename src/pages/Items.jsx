@@ -173,9 +173,9 @@ export default function Items() {
         imageRef
       };
 
-      const newItem = await apiPost('/api/items', dataToSend);
-      setItems(prev => [...prev, newItem]);
+      await apiPost('/api/items', dataToSend);
       handleCancel();
+      await fetchItems(); // Reload items from backend
     } catch (error) {
       console.error('Failed to add item:', error);
     }
@@ -197,11 +197,9 @@ export default function Items() {
         imageRef
       };
 
-      const updatedItem = await apiPut(`/api/items`, dataToSend);
-      setItems(prev => prev.map(item => 
-        item.ref === updatedItem.ref ? updatedItem : item
-      ));
+      await apiPut(`/api/items`, dataToSend);
       handleCancel();
+      await fetchItems(); // Reload items from backend
     } catch (error) {
       console.error('Failed to update item:', error);
     }
@@ -213,7 +211,7 @@ export default function Items() {
     
     try {
       await apiDelete(`/api/items/${itemRef}`);
-      setItems(prev => prev.filter(item => item.ref !== itemRef));
+      await fetchItems(); // Reload items from backend
     } catch (error) {
       console.error('Failed to delete item:', error);
     }

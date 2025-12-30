@@ -1,4 +1,3 @@
-import { getAuthToken } from './api';
 
 const API_BASE = '';
 
