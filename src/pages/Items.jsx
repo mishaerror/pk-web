@@ -58,6 +58,7 @@ export default function Items() {
       amount: '',
       currency: 'USD'
     },
+    count: '',
     discount: '',
     discountEnabled: false,
     imageRef: null
@@ -98,6 +99,10 @@ export default function Items() {
       errors.currency = 'Currency is required';
     }
     
+    if (!formData.count || isNaN(formData.count) || parseInt(formData.count) < 0) {
+      errors.count = 'Valid count is required';
+    }
+    
     if (formData.discountEnabled && (!formData.discount || isNaN(formData.discount) || parseFloat(formData.discount) < 0 || parseFloat(formData.discount) > 100)) {
       errors.discount = 'Discount must be between 0 and 100';
     }
@@ -123,7 +128,7 @@ export default function Items() {
     const file = event.target.files[0];
     if (file) {
       setImageFile(file);
-      setImageError('');
+      setImageError(''); // Clear any previous errors
       
       // Create preview
       const reader = new FileReader();
@@ -229,6 +234,7 @@ export default function Items() {
         amount: parseFloat(formData.price.amount),
         currency: formData.price.currency
       },
+      count: parseInt(formData.count),
       discount: formData.discountEnabled ? parseFloat(formData.discount) : null
     };
 
@@ -274,6 +280,7 @@ export default function Items() {
         amount: item.price?.amount ? item.price.amount.toString() : '',
         currency: item.price?.currency || 'USD'
       },
+      count: item.count ? item.count.toString() : '',
       discount: item.discount ? item.discount.toString() : '',
       discountEnabled: item.discount !== null,
       imageRef: item.imageRef
@@ -292,6 +299,7 @@ export default function Items() {
         amount: '',
         currency: 'USD'
       },
+      count: '',
       discount: '',
       discountEnabled: false,
       imageRef: null
@@ -421,6 +429,21 @@ export default function Items() {
               </FormControl>
             </Box>
 
+            <TextField
+              margin="dense"
+              name="count"
+              label="Inventory Count"
+              type="number"
+              fullWidth
+              variant="outlined"
+              value={formData.count}
+              onChange={handleInputChange}
+              error={!!formErrors.count}
+              helperText={formErrors.count}
+              inputProps={{ min: "0", step: "1" }}
+              sx={{ mb: 2 }}
+            />
+
             <FormControlLabel
               control={
                 <Checkbox
@@ -533,6 +556,9 @@ export default function Items() {
                         ({item.discount}% off)
                       </Typography>
                     )}
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    In Stock: {item.count}
                   </Typography>
                 </CardContent>
                 <CardActions>
