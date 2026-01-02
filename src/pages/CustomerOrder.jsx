@@ -30,6 +30,13 @@ import { apiGet, apiPost } from '../utils/api';
 
 const steps = ['Select Items', 'Review Order', 'Shipping Details', 'Confirmation'];
 
+// Format price display
+const formatPrice = (price) => {
+  if (!price || typeof price !== 'object') return '$0.00';
+  const amount = parseFloat(price.amount || 0);
+  return `$${amount.toFixed(2)}`;
+};
+
 export default function CustomerOrder() {
   const { itemRef } = useParams();
   const [items, setItems] = useState([]);
@@ -43,6 +50,7 @@ export default function CustomerOrder() {
   const [customerData, setCustomerData] = useState({
     customerName: '',
     email: '',
+    phone: '',
     addressLineOne: '',
     addressLineTwo: '',
     addressCity: '',
@@ -132,6 +140,9 @@ export default function CustomerOrder() {
     if (!customerData.customerName.trim()) {
       errors.customerName = 'Name is required';
     }
+    if (!customerData.phone.trim()) {
+      errors.phone = 'Phone number is required';
+    }
     if (!customerData.addressLineOne.trim()) {
       errors.addressLineOne = 'Address is required';
     }
@@ -178,6 +189,7 @@ export default function CustomerOrder() {
           itemRef: cartItem.ref,
           count: cartItem.quantity,
           customerName: customerData.customerName,
+          phone: customerData.phone,
           email: customerData.email || null,
           addressLineOne: customerData.addressLineOne,
           addressLineTwo: customerData.addressLineTwo,
@@ -204,6 +216,7 @@ export default function CustomerOrder() {
     setCustomerData({
       customerName: '',
       email: '',
+      phone: '',
       addressLineOne: '',
       addressLineTwo: '',
       addressCity: '',
@@ -218,7 +231,10 @@ export default function CustomerOrder() {
 
   // Calculate total
   const calculateTotal = () => {
-    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cart.reduce((total, item) => {
+      const price = item.price?.amount || 0;
+      return total + (parseFloat(price) * item.quantity);
+    }, 0);
   };
 
   return (
@@ -272,7 +288,7 @@ export default function CustomerOrder() {
                           {item.description}
                         </Typography>
                         <Typography variant="h6" color="primary">
-                          ${item.price}
+                          {formatPrice(item.price)}
                         </Typography>
                         <Typography variant="body2" color="text.secondary">
                           In Stock: {item.count}
@@ -313,7 +329,7 @@ export default function CustomerOrder() {
                         <Grid item xs={12} sm={6}>
                           <Typography variant="h6">{item.name}</Typography>
                           <Typography variant="body2" color="text.secondary">
-                            ${item.price} each
+                            {formatPrice(item.price)} each
                           </Typography>
                         </Grid>
                         <Grid item xs={12} sm={3}>
@@ -335,7 +351,7 @@ export default function CustomerOrder() {
                         </Grid>
                         <Grid item xs={12} sm={2}>
                           <Typography variant="h6">
-                            ${(item.price * item.quantity).toFixed(2)}
+                            ${(parseFloat(item.price?.amount || 0) * item.quantity).toFixed(2)}
                           </Typography>
                         </Grid>
                         <Grid item xs={12} sm={1}>
@@ -379,6 +395,18 @@ export default function CustomerOrder() {
                       onChange={handleCustomerInputChange}
                       error={!!formErrors.customerName}
                       helperText={formErrors.customerName}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      name="phone"
+                      label="Phone Number"
+                      type="tel"
+                      value={customerData.phone}
+                      onChange={handleCustomerInputChange}
+                      error={!!formErrors.phone}
+                      helperText={formErrors.phone}
                     />
                   </Grid>
                   <Grid item xs={12}>

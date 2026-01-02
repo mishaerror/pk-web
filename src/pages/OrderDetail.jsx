@@ -149,9 +149,12 @@ export default function OrderDetail() {
               <Typography variant="body1" gutterBottom>
                 <strong>Name:</strong> {order.orderAddress.customerName}
               </Typography>
-              {order.orderAddress.email && (
+              <Typography variant="body1" gutterBottom>
+                <strong>Phone:</strong> {order.orderContact.phone}
+              </Typography>
+              {order.orderContact.email && (
                 <Typography variant="body1" gutterBottom>
-                  <strong>Email:</strong> {order.orderAddress.email}
+                  <strong>Email:</strong> {order.orderContact.email}
                 </Typography>
               )}
             </CardContent>
@@ -193,7 +196,7 @@ export default function OrderDetail() {
               <Grid container spacing={2} alignItems="center">
                 <Grid item xs={6}>
                   <Typography variant="body1">
-                    <strong>Item Reference:</strong> {order.itemRef || 'N/A'}
+                    <strong>Item Reference:</strong> {order.orderRef || 'N/A'}
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
