@@ -35,6 +35,8 @@ import OAuthCallback from "./pages/OAuthCallback";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { logout } from "./utils/api";
+import CustomerOrder from "./pages/CustomerOrder";
+import OrderDetail from "./pages/OrderDetail";
 
 const drawerWidth = 240;
 
@@ -200,6 +202,7 @@ function AppContent() {
           <Route path="/auth/callback&flow=REGISTER" element={<OAuthCallback />} />
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+          <Route path="/orders/:orderRef" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
           <Route path="/items" element={<ProtectedRoute><Items /></ProtectedRoute>} />
           <Route path="/categories" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
         </Routes>
@@ -212,7 +215,14 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <AppContent />
+        <Routes>
+          {/* Customer order routes - no authentication required */}
+          <Route path="/customer-order" element={<CustomerOrder />} />
+          <Route path="/customer-order/:itemRef" element={<CustomerOrder />} />
+          
+          {/* Main app routes - with navigation and authentication */}
+          <Route path="/*" element={<AppContent />} />
+        </Routes>
       </BrowserRouter>
     </AuthProvider>
   );

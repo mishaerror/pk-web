@@ -22,7 +22,8 @@ import {
   MenuItem,
   Select,
   FormControl,
-  InputLabel
+  InputLabel,
+  Snackbar
 } from '@mui/material';
 import { 
   Add as AddIcon, 
@@ -31,7 +32,8 @@ import {
   Search as SearchIcon, 
   Clear as ClearIcon,
   PhotoCamera,
-  Close as CloseIcon
+  Close as CloseIcon,
+  Link as LinkIcon
 } from '@mui/icons-material';
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/api';
 import { uploadImage } from '../utils/imageApi';
@@ -68,6 +70,11 @@ export default function Items() {
   const [imagePreview, setImagePreview] = useState(null);
   const [imageUploading, setImageUploading] = useState(false);
   const [imageError, setImageError] = useState('');
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
 
   // Fetch items from backend
   const fetchItems = async (search = '') => {
@@ -220,6 +227,43 @@ export default function Items() {
     } catch (error) {
       console.error('Failed to delete item:', error);
     }
+  };
+
+  // Generate short URL for item
+  const generateShortUrl = async (itemRef) => {
+    try {
+      const response = await fetch(`/api/items/short/${itemRef}`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to generate short URL');
+      }
+      
+      const shortUrl = await response.text();
+      
+      // Copy to clipboard
+      await navigator.clipboard.writeText(shortUrl);
+      
+      setSnackbar({
+        open: true,
+        message: 'Short URL copied to clipboard!',
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Failed to generate short URL:', error);
+      setSnackbar({
+        open: true,
+        message: 'Failed to generate short URL',
+        severity: 'error'
+      });
+    }
+  };
+
+  // Handle snackbar close
+  const handleSnackbarClose = () => {
+    setSnackbar(prev => ({ ...prev, open: false }));
   };
 
   // Handle form submission
@@ -561,21 +605,31 @@ export default function Items() {
                     In Stock: {item.count}
                   </Typography>
                 </CardContent>
-                <CardActions>
+                <CardActions sx={{ justifyContent: 'space-between' }}>
+                  <Box>
+                    <Button
+                      size="small"
+                      onClick={() => handleEdit(item)}
+                      startIcon={<EditIcon />}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      size="small"
+                      color="error"
+                      onClick={() => deleteItem(item.ref)}
+                      startIcon={<DeleteIcon />}
+                    >
+                      Delete
+                    </Button>
+                  </Box>
                   <Button
                     size="small"
-                    startIcon={<EditIcon />}
-                    onClick={() => handleEdit(item)}
+                    variant="outlined"
+                    onClick={() => generateShortUrl(item.ref)}
+                    startIcon={<LinkIcon />}
                   >
-                    Edit
-                  </Button>
-                  <Button
-                    size="small"
-                    color="error"
-                    startIcon={<DeleteIcon />}
-                    onClick={() => deleteItem(item.ref)}
-                  >
-                    Delete
+                    Short URL
                   </Button>
                 </CardActions>
               </Card>
@@ -583,6 +637,21 @@ export default function Items() {
           ))}
         </Grid>
       )}
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={handleSnackbarClose} 
+          severity={snackbar.severity}
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }
