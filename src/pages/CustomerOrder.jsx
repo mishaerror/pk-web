@@ -67,7 +67,7 @@ export default function CustomerOrder() {
       
       if (itemRef) {
         // Fetch specific item for direct order
-        data = [await apiGet(`/api/orders/item/${itemRef}`)];
+        data = [await apiGet(`/api/customer/orders/item/${itemRef}`)];
         // Auto-add to cart and skip to review step
         if (data[0]) {
           setCart([{ ...data[0], quantity: 1 }]);
@@ -75,7 +75,7 @@ export default function CustomerOrder() {
         }
       } else {
         // Fetch all items for browsing
-        data = await apiGet('/api/items');
+        data = await apiGet('/api/customer/items');
       }
       
       setItems(data);
@@ -197,7 +197,7 @@ export default function CustomerOrder() {
           addressPostalCode: customerData.addressPostalCode
         };
         
-        await apiPost('/api/orders', orderRequest);
+        await apiPost('/api/customer/orders', orderRequest);
       }
       
       setOrderSubmitted(true);

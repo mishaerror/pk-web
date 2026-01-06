@@ -6,8 +6,6 @@
 // Use relative URLs since Vite proxy will handle routing to backend
 const API_BASE = '';
 
-import { useAuth } from '../contexts/AuthContext';
-
 /**
  * Set JWT token in localStorage
  */
