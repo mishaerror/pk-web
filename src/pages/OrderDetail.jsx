@@ -12,16 +12,26 @@ import {
   Chip,
   Button,
   Divider,
-  Paper
+  Paper,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  ButtonGroup
 } from '@mui/material';
 import {
   ArrowBack as ArrowBackIcon,
   Person as PersonIcon,
   LocationOn as LocationIcon,
   Inventory as InventoryIcon,
-  Timeline as TimelineIcon
+  Timeline as TimelineIcon,
+  Check as CheckIcon,
+  Close as CloseIcon,
+  Send as SendIcon,
+  LocalShipping as DeliveredIcon,
+  Undo as ReturnIcon
 } from '@mui/icons-material';
-import { apiGet } from '../utils/api';
+import { apiGet, apiPost } from '../utils/api';
 
 export default function OrderDetail() {
   const { orderRef } = useParams();
@@ -29,6 +39,8 @@ export default function OrderDetail() {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
+  const [confirmDialog, setConfirmDialog] = useState({ open: false, action: null, title: '', message: '' });
 
   const fetchOrder = async () => {
     try {
@@ -76,6 +88,63 @@ export default function OrderDetail() {
     }
   };
 
+  const getAvailableActions = (currentState) => {
+    switch(currentState) {
+      case 'CUSTOMER_ENTERED':
+        return [
+          { action: 'CONFIRM', label: 'Confirm Order', icon: <CheckIcon />, color: 'primary' },
+          { action: 'DECLINE', label: 'Decline Order', icon: <CloseIcon />, color: 'error' }
+        ];
+      case 'MERCHANT_CONFIRMED':
+        return [
+          { action: 'SEND', label: 'Mark as Sent', icon: <SendIcon />, color: 'primary' }
+        ];
+      case 'MERCHANT_SENT':
+        return [
+          { action: 'DELIVER', label: 'Mark as Delivered', icon: <DeliveredIcon />, color: 'success' },
+          { action: 'RETURN', label: 'Mark as Returned', icon: <ReturnIcon />, color: 'warning' }
+        ];
+      default:
+        return [];
+    }
+  };
+
+  const handleAction = (action) => {
+    const actionConfig = {
+      CONFIRM: { title: 'Confirm Order', message: 'Are you sure you want to confirm this order?' },
+      DECLINE: { title: 'Decline Order', message: 'Are you sure you want to decline this order?' },
+      SEND: { title: 'Mark as Sent', message: 'Are you sure the order has been sent?' },
+      DELIVER: { title: 'Mark as Delivered', message: 'Are you sure the order has been delivered?' },
+      RETURN: { title: 'Mark as Returned', message: 'Are you sure the order has been returned?' }
+    };
+
+    setConfirmDialog({
+      open: true,
+      action,
+      title: actionConfig[action].title,
+      message: actionConfig[action].message
+    });
+  };
+
+  const executeAction = async () => {
+    try {
+      setActionLoading(true);
+      const { action } = confirmDialog;
+      
+      await apiPost(`/api/admin/orders/${orderRef}/actions`, { action });
+      
+      // Refresh order data
+      await fetchOrder();
+      
+      setConfirmDialog({ open: false, action: null, title: '', message: '' });
+    } catch (error) {
+      console.error('Failed to execute action:', error);
+      setError('Failed to update order status');
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   if (loading) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -103,6 +172,8 @@ export default function OrderDetail() {
     );
   }
 
+  const availableActions = getAvailableActions(order.state);
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Button
@@ -126,14 +197,32 @@ export default function OrderDetail() {
         {/* Order Status */}
         <Grid item xs={12}>
           <Paper sx={{ p: 3, mb: 2 }}>
-            <Box display="flex" alignItems="center" gap={2}>
-              <TimelineIcon color="primary" />
-              <Typography variant="h6">Order Status</Typography>
-              <Chip 
-                label={getStatusLabel(order.state)} 
-                color={getStatusColor(order.state)}
-                size="medium"
-              />
+            <Box display="flex" alignItems="center" justifyContent="space-between">
+              <Box display="flex" alignItems="center" gap={2}>
+                <TimelineIcon color="primary" />
+                <Typography variant="h6">Order Status</Typography>
+                <Chip 
+                  label={getStatusLabel(order.state)} 
+                  color={getStatusColor(order.state)}
+                  size="medium"
+                />
+              </Box>
+              
+              {availableActions.length > 0 && (
+                <ButtonGroup variant="contained" size="small">
+                  {availableActions.map(({ action, label, icon, color }) => (
+                    <Button
+                      key={action}
+                      startIcon={icon}
+                      color={color}
+                      onClick={() => handleAction(action)}
+                      disabled={actionLoading}
+                    >
+                      {label}
+                    </Button>
+                  ))}
+                </ButtonGroup>
+              )}
             </Box>
           </Paper>
         </Grid>
@@ -196,7 +285,7 @@ export default function OrderDetail() {
               <Grid container spacing={2} alignItems="center">
                 <Grid item xs={6}>
                   <Typography variant="body1">
-                    <strong>Item Reference:</strong> {order.orderRef || 'N/A'}
+                    <strong>Item Reference:</strong> {order.itemRef || 'N/A'}
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
@@ -209,6 +298,22 @@ export default function OrderDetail() {
           </Card>
         </Grid>
       </Grid>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={confirmDialog.open} onClose={() => setConfirmDialog({ open: false, action: null, title: '', message: '' })}>
+        <DialogTitle>{confirmDialog.title}</DialogTitle>
+        <DialogContent>
+          <Typography>{confirmDialog.message}</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDialog({ open: false, action: null, title: '', message: '' })}>
+            Cancel
+          </Button>
+          <Button onClick={executeAction} disabled={actionLoading} variant="contained">
+            {actionLoading ? <CircularProgress size={20} /> : 'Confirm'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }
