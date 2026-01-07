@@ -29,7 +29,8 @@ import {
   Close as CloseIcon,
   Send as SendIcon,
   LocalShipping as DeliveredIcon,
-  Undo as ReturnIcon
+  Undo as ReturnIcon,
+  Print as PrintIcon
 } from '@mui/icons-material';
 import { apiGet, apiPost } from '../utils/api';
 
@@ -145,6 +146,68 @@ export default function OrderDetail() {
     }
   };
 
+  const printDeliveryLabel = () => {
+    const deliveryInfo = `
+DELIVERY LABEL
+==============
+
+Order Reference: ${order.orderRef}
+Date: ${new Date().toLocaleDateString()}
+
+CUSTOMER DETAILS:
+Name: ${order.orderAddress.customerName}
+Phone: ${order.orderContact.phone}
+${order.orderContact.email ? `Email: ${order.orderContact.email}` : ''}
+
+DELIVERY ADDRESS:
+${order.orderAddress.addressLineOne}
+${order.orderAddress.addressLineTwo ? order.orderAddress.addressLineTwo : ''}
+${order.orderAddress.addressCity}, ${order.orderAddress.adressPostalCode}
+
+ORDER DETAILS:
+Quantity: ${order.count}
+${order.orderTotal !== undefined && order.orderCurrency 
+  ? `Total: ${order.orderCurrency} ${parseFloat(order.orderTotal).toFixed(2)}`
+  : order.orderTotal !== undefined 
+  ? `Total: $${parseFloat(order.orderTotal).toFixed(2)}`
+  : ''
+}
+
+Status: ${getStatusLabel(order.state)}
+
+DELIVERY INSTRUCTIONS:
+- Contact customer at ${order.orderContact.phone} before delivery
+- Verify customer name: ${order.orderAddress.customerName}
+- Order Reference: ${order.orderRef}
+
+Generated: ${new Date().toLocaleString()}
+    `.trim();
+
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Delivery Label - ${order.orderRef}</title>
+          <style>
+            body { 
+              font-family: 'Courier New', monospace; 
+              font-size: 12px; 
+              line-height: 1.4; 
+              margin: 20px;
+              white-space: pre-line;
+            }
+            @media print {
+              body { margin: 0; }
+            }
+          </style>
+        </head>
+        <body>${deliveryInfo}</body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
   if (loading) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -208,21 +271,32 @@ export default function OrderDetail() {
                 />
               </Box>
               
-              {availableActions.length > 0 && (
-                <ButtonGroup variant="contained" size="small">
-                  {availableActions.map(({ action, label, icon, color }) => (
-                    <Button
-                      key={action}
-                      startIcon={icon}
-                      color={color}
-                      onClick={() => handleAction(action)}
-                      disabled={actionLoading}
-                    >
-                      {label}
-                    </Button>
-                  ))}
-                </ButtonGroup>
-              )}
+              <Box display="flex" gap={1}>
+                <Button
+                  variant="outlined"
+                  startIcon={<PrintIcon />}
+                  onClick={printDeliveryLabel}
+                  size="small"
+                >
+                  Print Delivery Label
+                </Button>
+                
+                {availableActions.length > 0 && (
+                  <ButtonGroup variant="contained" size="small">
+                    {availableActions.map(({ action, label, icon, color }) => (
+                      <Button
+                        key={action}
+                        startIcon={icon}
+                        color={color}
+                        onClick={() => handleAction(action)}
+                        disabled={actionLoading}
+                      >
+                        {label}
+                      </Button>
+                    ))}
+                  </ButtonGroup>
+                )}
+              </Box>
             </Box>
           </Paper>
         </Grid>
@@ -285,7 +359,7 @@ export default function OrderDetail() {
               <Grid container spacing={2} alignItems="center">
                 <Grid item xs={6}>
                   <Typography variant="body1">
-                    <strong>Item Reference:</strong> {order.itemRef || 'N/A'}
+                    <strong>Item Reference:</strong> {order.orderRef || 'N/A'}
                   </Typography>
                 </Grid>
                 <Grid item xs={6}>
@@ -294,6 +368,24 @@ export default function OrderDetail() {
                   </Typography>
                 </Grid>
               </Grid>
+              
+              {/* Order Total Section */}
+              {(order.orderTotal !== undefined || order.orderCurrency) && (
+                <>
+                  <Divider sx={{ my: 2 }} />
+                  <Box sx={{ textAlign: 'right' }}>
+                    <Typography variant="h6" color="primary">
+                      <strong>Order Total: </strong>
+                      {order.orderCurrency && order.orderTotal !== undefined 
+                        ? `${order.orderCurrency} ${parseFloat(order.orderTotal).toFixed(2)}`
+                        : order.orderTotal !== undefined 
+                        ? `$${parseFloat(order.orderTotal).toFixed(2)}`
+                        : 'N/A'
+                      }
+                    </Typography>
+                  </Box>
+                </>
+              )}
             </CardContent>
           </Card>
         </Grid>

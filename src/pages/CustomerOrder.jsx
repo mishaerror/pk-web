@@ -18,7 +18,8 @@ import {
   Chip,
   CardMedia,
   IconButton,
-  Divider
+  Divider,
+  Tooltip
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -35,6 +36,13 @@ const formatPrice = (price) => {
   if (!price || typeof price !== 'object') return '$0.00';
   const amount = parseFloat(price.amount || 0);
   return `$${amount.toFixed(2)}`;
+};
+
+// Calculate effective price after discount
+const getEffectivePrice = (price, discount) => {
+  const originalPrice = parseFloat(price?.amount || 0);
+  const discountAmount = originalPrice * (discount / 100);
+  return originalPrice - discountAmount;
 };
 
 export default function CustomerOrder() {
@@ -229,11 +237,24 @@ export default function CustomerOrder() {
     setActiveStep(itemRef ? 1 : 0);
   };
 
-  // Calculate total
+  // Calculate total with discounts
   const calculateTotal = () => {
     return cart.reduce((total, item) => {
-      const price = item.price?.amount || 0;
-      return total + (parseFloat(price) * item.quantity);
+      const effectivePrice = getEffectivePrice(item.price, item.discount);
+      return total + (effectivePrice * item.quantity);
+    }, 0);
+  };
+
+  // Calculate savings
+  const calculateSavings = () => {
+    return cart.reduce((savings, item) => {
+      if (!item.discount || item.discount <= 0) return savings;
+      
+      const originalPrice = parseFloat(item.price?.amount || 0);
+      const effectivePrice = getEffectivePrice(item.price, item.discount);
+      const itemSavings = (originalPrice - effectivePrice) * item.quantity;
+      
+      return savings + itemSavings;
     }, 0);
   };
 
@@ -328,9 +349,22 @@ export default function CustomerOrder() {
                       <Grid container spacing={2} alignItems="center">
                         <Grid item xs={12} sm={6}>
                           <Typography variant="h6">{item.name}</Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {formatPrice(item.price)} each
-                          </Typography>
+                          <Box>
+                            {item.discount && item.discount > 0 ? (
+                              <Box>
+                                <Typography variant="body2" color="text.secondary" sx={{ textDecoration: 'line-through' }}>
+                                  ${parseFloat(item.price?.amount || 0).toFixed(2)} each
+                                </Typography>
+                                <Typography variant="body2" color="error" fontWeight="bold">
+                                  ${getEffectivePrice(item.price, item.discount).toFixed(2)} each ({item.discount}% off)
+                                </Typography>
+                              </Box>
+                            ) : (
+                              <Typography variant="body2" color="text.secondary">
+                                ${parseFloat(item.price?.amount || 0).toFixed(2)} each
+                              </Typography>
+                            )}
+                          </Box>
                         </Grid>
                         <Grid item xs={12} sm={3}>
                           <Box display="flex" alignItems="center" gap={1}>
@@ -350,9 +384,22 @@ export default function CustomerOrder() {
                           </Box>
                         </Grid>
                         <Grid item xs={12} sm={2}>
-                          <Typography variant="h6">
-                            ${(parseFloat(item.price?.amount || 0) * item.quantity).toFixed(2)}
-                          </Typography>
+                          <Box>
+                            {item.discount && item.discount > 0 ? (
+                              <Box>
+                                <Typography variant="body2" sx={{ textDecoration: 'line-through', color: 'text.secondary' }}>
+                                  ${(parseFloat(item.price?.amount || 0) * item.quantity).toFixed(2)}
+                                </Typography>
+                                <Typography variant="h6" color="error">
+                                  ${(getEffectivePrice(item.price, item.discount) * item.quantity).toFixed(2)}
+                                </Typography>
+                              </Box>
+                            ) : (
+                              <Typography variant="h6">
+                                ${(parseFloat(item.price?.amount || 0) * item.quantity).toFixed(2)}
+                              </Typography>
+                            )}
+                          </Box>
                         </Grid>
                         <Grid item xs={12} sm={1}>
                           <IconButton
@@ -367,6 +414,11 @@ export default function CustomerOrder() {
                     </Box>
                   ))}
                   <Box sx={{ mt: 2, textAlign: 'right' }}>
+                    {calculateSavings() > 0 && (
+                      <Typography variant="body1" color="success.main" gutterBottom>
+                        You Save: ${calculateSavings().toFixed(2)}
+                      </Typography>
+                    )}
                     <Typography variant="h5">
                       Total: ${calculateTotal().toFixed(2)}
                     </Typography>
@@ -398,26 +450,39 @@ export default function CustomerOrder() {
                     />
                   </Grid>
                   <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      name="phone"
-                      label="Phone Number"
-                      type="tel"
-                      value={customerData.phone}
-                      onChange={handleCustomerInputChange}
-                      error={!!formErrors.phone}
-                      helperText={formErrors.phone}
-                    />
+                    <Tooltip 
+                      title="Phone number is required for delivery coordination and order updates"
+                      placement="top"
+                      arrow
+                    >
+                      <TextField
+                        fullWidth
+                        name="phone"
+                        label="Phone Number"
+                        type="tel"
+                        value={customerData.phone}
+                        onChange={handleCustomerInputChange}
+                        error={!!formErrors.phone}
+                        helperText={formErrors.phone || "Required for delivery service contact"}
+                      />
+                    </Tooltip>
                   </Grid>
                   <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      name="email"
-                      label="Email (Optional)"
-                      type="email"
-                      value={customerData.email}
-                      onChange={handleCustomerInputChange}
-                    />
+                    <Tooltip 
+                      title="Email is optional but recommended - we'll send you order updates and delivery notifications"
+                      placement="top"
+                      arrow
+                    >
+                      <TextField
+                        fullWidth
+                        name="email"
+                        label="Email (Optional)"
+                        type="email"
+                        value={customerData.email}
+                        onChange={handleCustomerInputChange}
+                        helperText="We'll send order updates to this email"
+                      />
+                    </Tooltip>
                   </Grid>
                   <Grid item xs={12}>
                     <TextField
@@ -498,11 +563,20 @@ export default function CustomerOrder() {
             </Button>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               {cart.length > 0 && (
-                <Chip
-                  icon={<CartIcon />}
-                  label={`${cart.length} items`}
-                  color="primary"
-                />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Chip
+                    icon={<CartIcon />}
+                    label={`${cart.length} items`}
+                    color="primary"
+                  />
+                  {calculateSavings() > 0 && (
+                    <Chip
+                      label={`Save $${calculateSavings().toFixed(2)}`}
+                      color="success"
+                      variant="outlined"
+                    />
+                  )}
+                </Box>
               )}
               <Button
                 variant="contained"

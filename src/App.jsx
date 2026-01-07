@@ -37,6 +37,7 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { logout } from "./utils/api";
 import CustomerOrder from "./pages/CustomerOrder";
 import OrderDetail from "./pages/OrderDetail";
+import SalesSummary from "./pages/SalesSummary";
 
 const drawerWidth = 240;
 
@@ -205,6 +206,7 @@ function AppContent() {
           <Route path="/orders/:orderRef" element={<ProtectedRoute><OrderDetail /></ProtectedRoute>} />
           <Route path="/items" element={<ProtectedRoute><Items /></ProtectedRoute>} />
           <Route path="/categories" element={<ProtectedRoute><Categories /></ProtectedRoute>} />
+          <Route path="/sales-summary" element={<ProtectedRoute><SalesSummary /></ProtectedRoute>} />
         </Routes>
       </Box>
     </Box>
